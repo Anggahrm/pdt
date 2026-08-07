@@ -293,7 +293,7 @@ configure_zshrc() {
     echo "command -v eza >/dev/null 2>&1 && alias ls='eza --icons'"
     echo "command -v batcat >/dev/null 2>&1 && alias cat='batcat'"
     echo "command -v bat >/dev/null 2>&1 && alias cat='bat'"
-    echo "command -v neofetch >/dev/null 2>&1 && neofetch"
+    echo "command -v fastfetch >/dev/null 2>&1 && fastfetch"
     echo "$marker_end"
   } >> "$zshrc"
 
