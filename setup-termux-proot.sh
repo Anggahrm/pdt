@@ -119,7 +119,7 @@ provision_user() {
     # trust once with --allow-unauthenticated, then do a normal update.
     apt-get update -y -qq --allow-unauthenticated 2>/dev/null || true
     apt-get install -y -qq --allow-unauthenticated gnupg ca-certificates ubuntu-keyring >/dev/null 2>&1 || true
-    apt-get update -y -qq
+    apt-get update -y -qq && apt upgrade -y -qq
     apt-get install -y -qq sudo >/dev/null
     usermod -aG sudo "$NEWUSER"
     echo "$NEWUSER ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$NEWUSER"
