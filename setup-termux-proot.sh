@@ -85,8 +85,8 @@ install_proot_distro() {
     return
   fi
   log_info "Installing proot-distro..."
-  apt update -y && apt install openssl -y
-  apt install -y proot-distro
+  apt update -y
+  apt install -y openssl proot-distro
   log_success "proot-distro installed"
 }
 
@@ -113,6 +113,12 @@ provision_user() {
       useradd -m -s /bin/bash "$NEWUSER"
     fi
     echo "$NEWUSER:$NEWPASS" | chpasswd
+
+    # Fresh proot-distro OCI images ship without gnupg, which makes apt
+    # reject the default ports.ubuntu.com repos as "not signed". Bootstrap
+    # trust once with --allow-unauthenticated, then do a normal update.
+    apt-get update -y -qq --allow-unauthenticated 2>/dev/null || true
+    apt-get install -y -qq --allow-unauthenticated gnupg ca-certificates ubuntu-keyring >/dev/null 2>&1 || true
     apt-get update -y -qq
     apt-get install -y -qq sudo >/dev/null
     usermod -aG sudo "$NEWUSER"
