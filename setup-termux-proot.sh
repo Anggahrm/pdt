@@ -147,8 +147,27 @@ APTCONF
 install_nerd_font() {
   log_info "Installing JetBrainsMono Nerd Font..."
   mkdir -p "$HOME/.termux"
-  curl -fLo "$HOME/.termux/font.ttf" \
-    https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf
+
+  # nerd-fonts no longer exposes individual .ttf files via raw/master/... --
+  # fonts are now distributed as per-family archives attached to GitHub
+  # Releases. Download the archive, then pull just the file we need out of it.
+  command -v unzip >/dev/null 2>&1 || pkg install -y unzip
+
+  local tmp_dir target_ttf
+  tmp_dir="$(mktemp -d)"
+  target_ttf="JetBrainsMonoNerdFont-Regular.ttf"
+
+  curl -fLo "$tmp_dir/JetBrainsMono.zip" \
+    https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+
+  if ! unzip -p "$tmp_dir/JetBrainsMono.zip" "$target_ttf" > "$HOME/.termux/font.ttf" 2>/dev/null \
+     || [ ! -s "$HOME/.termux/font.ttf" ]; then
+    log_warn "Expected filename not found in the archive, falling back to the first .ttf inside it"
+    target_ttf="$(unzip -Z1 "$tmp_dir/JetBrainsMono.zip" | grep -i '\.ttf$' | head -n1)"
+    unzip -p "$tmp_dir/JetBrainsMono.zip" "$target_ttf" > "$HOME/.termux/font.ttf"
+  fi
+
+  rm -rf "$tmp_dir"
   termux-reload-settings 2>/dev/null || log_warn "Could not auto-reload Termux settings; reload manually via Termux:Style/Properties."
   log_success "Font installed"
 }
