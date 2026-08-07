@@ -85,7 +85,7 @@ install_proot_distro() {
     return
   fi
   log_info "Installing proot-distro..."
-  #pkg update -y
+  pkg update -y
   pkg install -y proot-distro
   log_success "proot-distro installed"
 }
