@@ -63,7 +63,7 @@ require_privileges() {
 install_base_packages() {
   log_info "Updating package lists and installing base packages..."
   $SUDO apt update -y
-  $SUDO apt install -y zsh git curl nano sudo unzip fontconfig neofetch
+  $SUDO apt install -y zsh git curl nano sudo unzip fontconfig fastfetch
   log_success "Base packages ready"
 }
 
