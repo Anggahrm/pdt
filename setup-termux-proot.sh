@@ -85,7 +85,7 @@ install_proot_distro() {
     return
   fi
   log_info "Installing proot-distro..."
-  apt update -y && apt upgrade -y
+  apt update -y && apt install openssl -y
   apt install -y proot-distro
   log_success "proot-distro installed"
 }
