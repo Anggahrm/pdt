@@ -114,12 +114,19 @@ provision_user() {
     fi
     echo "$NEWUSER:$NEWPASS" | chpasswd
 
-    # Fresh proot-distro OCI images ship without gnupg, which makes apt
-    # reject the default ports.ubuntu.com repos as "not signed". Bootstrap
-    # trust once with --allow-unauthenticated, then do a normal update.
-    apt-get update -y -qq --allow-unauthenticated 2>/dev/null || true
-    apt-get install -y -qq --allow-unauthenticated gnupg ca-certificates ubuntu-keyring >/dev/null 2>&1 || true
-    apt-get update -y -qq && apt upgrade -y -qq
+    # On some devices/kernels, gpgv crashes when run under proot instead of
+    # failing cleanly, which locks apt out of every repo ("not signed") --
+    # including the repo that would provide gnupg itself. --allow-unauthenticated
+    # does not fix this: it only affects install candidates, not the repo-level
+    # "not signed" rejection during update. Acquire::AllowInsecureRepositories
+    # is the directive that actually lets apt read the package index anyway.
+    cat > /etc/apt/apt.conf.d/99insecure-repos <<APTCONF
+Acquire::AllowInsecureRepositories "true";
+Acquire::AllowDowngradeToInsecureRepositories "true";
+APT::Get::AllowUnauthenticated "true";
+APTCONF
+
+    apt-get update -y -qq
     apt-get install -y -qq sudo >/dev/null
     usermod -aG sudo "$NEWUSER"
     echo "$NEWUSER ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/$NEWUSER"
