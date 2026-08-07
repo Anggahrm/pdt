@@ -87,6 +87,7 @@ install_proot_distro() {
   log_info "Installing proot-distro..."
   apt update -y
   apt install -y openssl proot-distro
+  apt upgrade -y
   log_success "proot-distro installed"
 }
 
@@ -105,7 +106,7 @@ install_ubuntu_container() {
 # ---------------------------------------------------------------------------
 provision_user() {
   log_info "Provisioning user '$USERNAME' inside the Ubuntu container..."
-  proot-distro login ubuntu -- env NEWUSER="$USERNAME" NEWPASS="$PASSWORD" bash -c '
+  proot-distro login ubuntu -- env NEWUSER="$USERNAME" NEWPASS="$PASSWORD" DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC bash -c '
     set -e
     if id "$NEWUSER" >/dev/null 2>&1; then
       echo "  User already exists, updating password and sudo access only."
@@ -125,6 +126,11 @@ Acquire::AllowInsecureRepositories "true";
 Acquire::AllowDowngradeToInsecureRepositories "true";
 APT::Get::AllowUnauthenticated "true";
 APTCONF
+
+    # tzdata (pulled in by sudo) prompts interactively for a timezone via
+    # debconf unless DEBIAN_FRONTEND=noninteractive is set, which would hang
+    # a scripted install. TZ + localtime keep the default sane (UTC).
+    ln -fs "/usr/share/zoneinfo/$TZ" /etc/localtime
 
     apt-get update -y -qq
     apt-get install -y -qq sudo >/dev/null
